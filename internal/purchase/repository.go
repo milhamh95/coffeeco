@@ -28,3 +28,13 @@ func NewMongoRepo(ctx context.Context, connectionString string) (*MongoRepositor
 		purhcases: purhcases,
 	}, nil
 }
+
+func (mr *MongoRepository) Store(ctx context.Context, purchase Purchase) error {
+	mongoP := New(purchase)
+	_, err := mr.purhcases.InsertOne(ctx, mongoP)
+	if err != nil {
+		return fmt.Errorf("failed to persist purchase: %w", err)
+	}
+
+	return nil
+}
