@@ -7,6 +7,7 @@ import (
 	"coffeeco/internal/store"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Rhymond/go-money"
@@ -72,10 +73,16 @@ func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase, coffe
 		// TO DO
 		return errors.New("payment method is not supported yet")
 	case payment.MEANS_COFFEEBUX:
-		err := s.purchaseRepo.Store(ctx, *purchase)
+		err := coffeeBuxCard.Pay(ctx, purchase.ProductsToPurchase)
 		if err != nil {
-			return errors.New("failed to store purchase")
+			return fmt.Errorf("failed to charge loyalty card: %w", err)
 		}
+
+	}
+
+	err = s.purchaseRepo.Store(ctx, *purchase)
+	if err != nil {
+		return errors.New("failed to store purchase")
 	}
 
 	// coffeeBuxCard is a pointer because a customer

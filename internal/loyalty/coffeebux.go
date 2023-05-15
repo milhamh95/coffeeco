@@ -2,7 +2,6 @@ package loyalty
 
 import (
 	coffeeco "coffeeco/internal"
-	"coffeeco/internal/purchase"
 	"coffeeco/internal/store"
 	"context"
 	"errors"
@@ -32,7 +31,7 @@ func (c *CoffeeBux) AddStamp() {
 	c.RemainingDrinkPurchaseUntilFreeDrink--
 }
 
-func (c *CoffeeBux) Pay(ctx context.Context, purchases []purchase.Purchase) error {
+func (c *CoffeeBux) Pay(ctx context.Context, purchases []coffeeco.Product) error {
 	lp := len(purchases)
 	if lp == 0 {
 		return errors.New("nothing to buy")
