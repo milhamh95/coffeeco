@@ -1,9 +1,15 @@
 package purchase
 
 import (
+	coffeeco "coffeeco/internal"
+	"coffeeco/internal/payment"
+	"coffeeco/internal/store"
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/Rhymond/go-money"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -30,11 +36,34 @@ func NewMongoRepo(ctx context.Context, connectionString string) (*MongoRepositor
 }
 
 func (mr *MongoRepository) Store(ctx context.Context, purchase Purchase) error {
-	mongoP := New(purchase)
+	mongoP := toMongoPurchase(purchase)
 	_, err := mr.purhcases.InsertOne(ctx, mongoP)
 	if err != nil {
 		return fmt.Errorf("failed to persist purchase: %w", err)
 	}
 
 	return nil
+}
+
+type mongoPurchase struct {
+	id                 uuid.UUID
+	store              store.Store
+	productsToPurchase []coffeeco.Product
+	total              money.Money
+	paymentMeans       payment.Means
+	timeOfPurchase     time.Time
+	cardToken          *string
+}
+
+// decouple our purchase aggregate from the mongo implementation
+func toMongoPurchase(p Purchase) mongoPurchase {
+	return mongoPurchase{
+		id:                 p.id,
+		store:              p.Store,
+		productsToPurchase: p.ProductsToPurchase,
+		total:              p.total,
+		paymentMeans:       p.PaymentMeans,
+		timeOfPurchase:     p.timeOfPurchase,
+		cardToken:          p.CardToken,
+	}
 }
