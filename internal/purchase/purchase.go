@@ -2,6 +2,7 @@ package purchase
 
 import (
 	coffeeco "coffeeco/internal"
+	"coffeeco/internal/loyalty"
 	"coffeeco/internal/payment"
 	"coffeeco/internal/store"
 	"context"
@@ -55,7 +56,7 @@ type Service struct {
 	purchaseRepo Repository
 }
 
-func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase) error {
+func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase, coffeeBuxCard *loyalty.CoffeeBux) error {
 	err := purchase.validateAndEnrich()
 	if err != nil {
 		return err
@@ -75,6 +76,13 @@ func (s Service) CompletePurchase(ctx context.Context, purchase *Purchase) error
 		if err != nil {
 			return errors.New("failed to store purchase")
 		}
+	}
+
+	// coffeeBuxCard is a pointer because a customer
+	// is under no obligratio to present a loyalty card
+	// and therefore it can be nil
+	if coffeeBuxCard != nil {
+		coffeeBuxCard.AddStamp()
 	}
 
 	return nil
