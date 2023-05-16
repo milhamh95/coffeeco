@@ -16,6 +16,7 @@ import (
 
 type Repository interface {
 	Store(ctx context.Context, purchase Purchase) error
+	Ping(ctx context.Context) error
 }
 
 type MongoRepository struct {
@@ -46,24 +47,45 @@ func (mr *MongoRepository) Store(ctx context.Context, purchase Purchase) error {
 }
 
 type mongoPurchase struct {
-	id                 uuid.UUID
-	store              store.Store
-	productsToPurchase []coffeeco.Product
-	total              money.Money
-	paymentMeans       payment.Means
-	timeOfPurchase     time.Time
-	cardToken          *string
+	ID                 uuid.UUID          `bson:"ID"`
+	Store              store.Store        `bson:"Store"`
+	ProductsToPurchase []coffeeco.Product `bson:"products_purchased"`
+	Total              int64              `bson:"purchase_total"`
+	PaymentMeans       payment.Means      `bson:"payment_means"`
+	TimeOfPurchase     time.Time          `bson:"created_at"`
+	CardToken          *string            `bson:"card_token"`
 }
 
 // decouple our purchase aggregate from the mongo implementation
 func toMongoPurchase(p Purchase) mongoPurchase {
 	return mongoPurchase{
-		id:                 p.id,
-		store:              p.Store,
-		productsToPurchase: p.ProductsToPurchase,
-		total:              p.total,
-		paymentMeans:       p.PaymentMeans,
-		timeOfPurchase:     p.timeOfPurchase,
-		cardToken:          p.CardToken,
+		ID:                 p.id,
+		Store:              p.Store,
+		ProductsToPurchase: p.ProductsToPurchase,
+		Total:              p.total.Amount(),
+		PaymentMeans:       p.PaymentMeans,
+		TimeOfPurchase:     p.timeOfPurchase,
+		CardToken:          p.CardToken,
 	}
+}
+
+func (m mongoPurchase) ToPurchase() Purchase {
+	return Purchase{
+		id:                 m.ID,
+		Store:              m.Store,
+		ProductsToPurchase: m.ProductsToPurchase,
+		total:              *money.New(m.Total, "USD"),
+		PaymentMeans:       m.PaymentMeans,
+		timeOfPurchase:     m.TimeOfPurchase,
+		CardToken:          m.CardToken,
+	}
+}
+
+func (mr *MongoRepository) Ping(ctx context.Context) error {
+	_, err := mr.purhcases.EstimatedDocumentCount(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to ping mongo: %w", err)
+	}
+
+	return nil
 }

@@ -1,14 +1,15 @@
 package purchase
 
 import (
-	coffeeco "coffeeco/internal"
-	"coffeeco/internal/loyalty"
-	"coffeeco/internal/payment"
-	"coffeeco/internal/store"
 	"context"
 	"errors"
 	"fmt"
 	"time"
+
+	coffeeco "coffeeco/internal"
+	"coffeeco/internal/loyalty"
+	"coffeeco/internal/payment"
+	"coffeeco/internal/store"
 
 	"github.com/Rhymond/go-money"
 	"github.com/google/uuid"
