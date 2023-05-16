@@ -63,6 +63,14 @@ type Service struct {
 	storeService StoreService
 }
 
+func NewService(cardService CardChargeService, purchaseRepo Repository, storeService StoreService) *Service {
+	return &Service{
+		cardService:  cardService,
+		purchaseRepo: purchaseRepo,
+		storeService: storeService,
+	}
+}
+
 func (s Service) CompletePurchase(ctx context.Context, storeID uuid.UUID, purchase *Purchase, coffeeBuxCard *loyalty.CoffeeBux) error {
 	err := purchase.validateAndEnrich()
 	if err != nil {

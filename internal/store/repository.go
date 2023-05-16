@@ -14,7 +14,7 @@ import (
 var ErrNoDiscount = errors.New("no discount for store")
 
 type Repository interface {
-	GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int, error)
+	GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int64, error)
 	Ping(ctx context.Context) error
 }
 
@@ -43,8 +43,8 @@ func NewMongoRepo(ctx context.Context, connectionString string) (*MongoRepositor
 	}, nil
 }
 
-func (m MongoRepository) GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (float32, error) {
-	var discount float32
+func (m MongoRepository) GetStoreDiscount(ctx context.Context, storeID uuid.UUID) (int64, error) {
+	var discount int64
 	err := m.storeDiscounts.FindOne(ctx, bson.D{{Key: "store_id", Value: storeID.String()}}).Decode(&discount)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
